@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-accent: #00FFD1;
+  --color-brand-black: #0A0A0A;
+  --color-glass-white: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00FFD1;
+}
+
+html, body {
+  scroll-behavior: smooth;
+  background-color: #0A0A0A;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+}
+
+/* Elegant wireframe helper classes for Artistic Flair theme */
+.grid-bg {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+@keyframes scan-glow {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.cyber-scanline {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 255, 209, 0.04) 50%,
+    transparent
+  );
+  animation: scan-glow 8s linear infinite;
+  pointer-events: none;
+}
+
+.wire-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wire-border-accent {
+  border: 1px solid #00FFD1;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(0, 255, 209, 0.5), 0 0 40px rgba(0, 255, 209, 0.2);
+}
+
+.bg-glow {
+  box-shadow: 0 0 35px rgba(0, 255, 209, 0.12);
+}
+
+/* Cinematic glowing grid and badge */
+@keyframes pulse-accent {
+  0%, 100% { opacity: 0.3; filter: brightness(1); }
+  50% { opacity: 0.8; filter: brightness(1.5); }
+}
+
+.glow-pulse {
+  animation: pulse-accent 3s infinite ease-in-out;
+}
+
+@keyframes draw-grid {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
+.ambient-grid-anim {
+  animation: draw-grid 25s linear infinite;
+}
+
+
