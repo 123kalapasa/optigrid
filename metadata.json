@@ -1,6 +1,0 @@
-{
-  "name": "Optigrid",
-  "description": "High-performance tech agency specializing in hyper-optimized interfaces, custom automation, and intelligent AI solutions.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
