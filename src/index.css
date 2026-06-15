@@ -48,8 +48,13 @@ html, body {
   100% { transform: translateY(100%); }
 }
 
+@keyframes scan-glow-fixed {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+
 .cyber-scanline {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: linear-gradient(
     to bottom,
@@ -57,8 +62,9 @@ html, body {
     rgba(0, 255, 209, 0.04) 50%,
     transparent
   );
-  animation: scan-glow 8s linear infinite;
+  animation: scan-glow-fixed 8s linear infinite;
   pointer-events: none;
+  z-index: 10;
 }
 
 .wire-border {

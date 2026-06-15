@@ -39,8 +39,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Spotlight coordinate states
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  // Spotlight coordinate ref & hover states
+  const rootRef = React.useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   // Contact form state
@@ -49,6 +49,7 @@ export default function App() {
   const [contactMsg, setContactMsg] = useState("");
   const [contactSuccess, setContactSuccess] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
+  const [contactSubmitError, setContactSubmitError] = useState<string | null>(null);
 
   // Set active team member focus
   const [activeMemberId, setActiveMemberId] = useState<string>("director");
@@ -56,66 +57,15 @@ export default function App() {
   // Floating button scroll activation
   const [showFloatingBtn, setShowFloatingBtn] = useState(false);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [buttonOffset, setButtonOffset] = useState({ x: 0, y: 0 });
-  const [isSnapped, setIsSnapped] = useState(false);
-
-  useEffect(() => {
-    if (!showFloatingBtn) {
-      setButtonOffset({ x: 0, y: 0 });
-      setIsSnapped(false);
-      return;
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const btn = document.getElementById("floating-consultation-btn");
-      if (!btn) return;
-
-      const rect = btn.getBoundingClientRect();
-      const btnCenterX = rect.left + rect.width / 2;
-      const btnCenterY = rect.top + rect.height / 2;
-
-      const dx = e.clientX - btnCenterX;
-      const dy = e.clientY - btnCenterY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      // Distance thresholds for attraction and snapping zones
-      const threshold = 180;
-      const snapThreshold = 50;
-
-      if (distance < threshold) {
-        if (distance < snapThreshold) {
-          setIsSnapped(true);
-          // Snap strongly to the cursor (smoothly pulled 65% of the distance)
-          const pullX = dx * 0.65;
-          const pullY = dy * 0.65;
-          setButtonOffset({ x: pullX, y: pullY });
-        } else {
-          setIsSnapped(false);
-          // High-end tactile pull calculation
-          const strength = (threshold - distance) / threshold; // 0 to 1
-          const maxPull = 18; // Shift max 18px towards cursor
-          const pullX = (dx / (distance || 1)) * strength * maxPull;
-          const pullY = (dy / (distance || 1)) * strength * maxPull;
-          setButtonOffset({ x: pullX, y: pullY });
-        }
-      } else {
-        setIsSnapped(false);
-        setButtonOffset({ x: 0, y: 0 });
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [showFloatingBtn]);
 
   useEffect(() => {
     const handleScroll = () => {
       // Show only after scrolling past the main hero section (approx 500px)
-      if (window.scrollY > 500) {
-        setShowFloatingBtn(true);
-      } else {
-        setShowFloatingBtn(false);
-      }
+      const pastThreshold = window.scrollY > 500;
+      setShowFloatingBtn((prev) => {
+        if (prev !== pastThreshold) return pastThreshold;
+        return prev;
+      });
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -132,6 +82,15 @@ export default function App() {
 
   const scrollToContact = () => {
     document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleNavClick = (e: React.MouseEvent<HTMLElement>, href: string) => {
+    e.preventDefault();
+    const id = href.replace("#", "");
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleFloatingBtnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -181,6 +140,7 @@ Our operational goals and challenge brief:
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setContactLoading(true);
+    setContactSubmitError(null);
     try {
       await emailjs.send(
         "service_yupk50k",
@@ -198,7 +158,7 @@ Our operational goals and challenge brief:
       setContactMsg("");
     } catch (err: any) {
       console.error("EmailJS Error:", err);
-      alert("Failed to send your inquiry. Please try again or contact directly via standard communication channels.");
+      setContactSubmitError("Failed to send your inquiry. Please check your network connection or try again. You can also contact us directly via typical enterprise channels.");
     } finally {
       setContactLoading(false);
     }
@@ -206,10 +166,13 @@ Our operational goals and challenge brief:
 
   return (
     <div 
+      ref={rootRef}
       className="min-h-screen bg-transparent text-white flex flex-col relative overflow-x-hidden selection:bg-accent/20 selection:text-accent font-sans"
       onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        const x = e.pageX;
+        const y = e.pageY;
+        e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+        e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -228,7 +191,7 @@ Our operational goals and challenge brief:
         className="absolute inset-0 pointer-events-none transition-all duration-300 z-10 opacity-60 pointer-events-none"
         style={{
           background: isHovered 
-            ? `radial-gradient(800px circle at ${mousePos.x}px ${mousePos.y}px, rgba(0, 255, 209, 0.08), transparent 50%)`
+            ? `radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 35%), rgba(0, 255, 209, 0.08), transparent 50%)`
             : `radial-gradient(1000px circle at 50% 35%, rgba(0, 255, 209, 0.05), transparent 60%)`
         }}
       />
@@ -241,7 +204,14 @@ Our operational goals and challenge brief:
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
           
           {/* Logo with interactive glow badge */}
-          <a href="#" className="flex items-center gap-2.5 group">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="flex items-center gap-2.5 group"
+          >
             <div className="relative p-2.5 bg-[#111] border border-white/10 group-hover:border-accent group-hover:shadow-[0_0_15px_rgba(0,255,209,0.2)] transition-all duration-500 rounded-none">
               <Network className="net-icon w-4 h-4 text-accent transition-transform duration-700 group-hover:rotate-180" />
               <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-accent rounded-full animate-ping" />
@@ -268,6 +238,7 @@ Our operational goals and challenge brief:
               <a
                 key={idx}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="relative text-[10px] tracking-widest text-white/60 hover:text-white transition-all uppercase py-1 group/item"
               >
                 <span className="flex items-center gap-1">
@@ -296,6 +267,7 @@ Our operational goals and challenge brief:
             
             <motion.a
               href="#planner"
+              onClick={(e) => handleNavClick(e as any, "#planner")}
               whileHover={{ scale: 1.05, translateY: -1 }}
               whileTap={{ scale: 0.95 }}
               className="px-5 py-2.5 rounded-none bg-accent/5 hover:bg-accent text-accent hover:text-[#0A0A0A] border border-accent/30 hover:border-accent hover:shadow-[0_0_25px_rgba(0,255,209,0.45)] transition-all duration-300 text-[10px] font-mono uppercase tracking-widest font-bold shimmer-btn-glow"
@@ -398,6 +370,7 @@ Our operational goals and challenge brief:
                 >
                   <motion.a
                     href="#planner"
+                    onClick={(e) => handleNavClick(e as any, "#planner")}
                     whileHover={{ scale: 1.03, translateY: -2 }}
                     whileTap={{ scale: 0.98 }}
                     className="group px-6 py-4 rounded-none bg-accent hover:bg-[#80FFEB] text-brand-black font-mono text-xs uppercase tracking-wider font-extrabold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_6px_30px_rgba(0,255,209,0.3)] hover:shadow-[0_8px_35px_rgba(0,255,209,0.5)] border border-accent/20 shimmer-btn-glow"
@@ -407,6 +380,7 @@ Our operational goals and challenge brief:
                   </motion.a>
                   <motion.a
                     href="#services"
+                    onClick={(e) => handleNavClick(e as any, "#services")}
                     whileHover={{ scale: 1.03, translateY: -2 }}
                     whileTap={{ scale: 0.98 }}
                     className="px-6 py-4 rounded-none bg-white/2 hover:bg-white/5 text-white/80 hover:text-white border border-white/5 hover:border-accent/40 hover:shadow-[0_0_20px_rgba(0,255,209,0.15)] transition-all duration-300 font-mono text-xs uppercase tracking-widest flex items-center justify-center cursor-pointer shimmer-btn-glow"
@@ -1091,6 +1065,13 @@ Our operational goals and challenge brief:
                     />
                   </div>
 
+                  {contactSubmitError && (
+                    <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 font-mono text-[11px] leading-relaxed rounded-none shadow-[0_0_15px_rgba(244,63,94,0.1)] flex items-start gap-2 animate-[pulse_2s_infinite]">
+                      <span className="text-rose-500 font-bold shrink-0">[ ERROR ]</span>
+                      <span>{contactSubmitError}</span>
+                    </div>
+                  )}
+
                   <motion.button
                     type="submit"
                     disabled={contactLoading}
@@ -1170,69 +1151,72 @@ Our operational goals and challenge brief:
 
 
       {/* Floating Animated Consultation Trigger */}
-      <AnimatePresence>
-        {showFloatingBtn && (
-          <motion.button
-            id="floating-consultation-btn"
-            onClick={handleFloatingBtnClick}
-            initial={{ opacity: 0, x: 0, y: 40, scale: 0.9 }}
-            animate={{ 
-              opacity: 1, 
-              x: buttonOffset.x, 
-              y: buttonOffset.y, 
-              scale: 1 
-            }}
-            exit={{ opacity: 0, x: 0, y: 30, scale: 0.9 }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.94 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: isSnapped ? 450 : 260, 
-              damping: isSnapped ? 18 : 20 
-            }}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 flex items-center gap-2.5 bg-accent text-[#0A0A0A] font-mono text-[10px] font-black uppercase tracking-widest px-5 py-4 shadow-[0_15px_40px_rgba(0,255,209,0.3)] hover:shadow-[0_20px_50px_rgba(0,255,209,0.5)] border border-accent/20 transition-all duration-300 group cursor-pointer overflow-hidden shimmer-btn-glow"
-          >
-            {/* Subtle animated premium perimeter glow */}
-            <motion.div
-              className="absolute inset-0 -z-10 bg-accent/60 blur-md pointer-events-none"
-              animate={{
-                scale: [0.98, 1.15, 0.98],
-                opacity: [0.5, 0.9, 0.5],
+      {/* Floating Animated Consultation Trigger Container */}
+      <div id="floating-consultation-btn-container" className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 pointer-events-none">
+        <AnimatePresence>
+          {showFloatingBtn && (
+            <motion.button
+              id="floating-consultation-btn"
+              onClick={handleFloatingBtnClick}
+              initial={{ opacity: 0, x: 0, y: 40, scale: 0.9 }}
+              animate={{ 
+                opacity: 1, 
+                x: 0, 
+                y: 0, 
+                scale: 1 
               }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
+              exit={{ opacity: 0, x: 0, y: 30, scale: 0.9 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 260, 
+                damping: 20 
               }}
-            />
-
-            {/* Click ripple effect cells */}
-            {ripples.map((ripple) => (
-              <motion.span
-                key={ripple.id}
-                className="absolute bg-white/40 rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  left: ripple.x,
-                  top: ripple.y,
-                  width: 240,
-                  height: 240,
+              className="relative pointer-events-auto flex items-center gap-1.5 md:gap-2.5 bg-accent text-[#0A0A0A] font-mono text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-widest px-3 py-2.5 md:px-4.5 md:py-3 shadow-[0_10px_30px_rgba(0,255,209,0.25)] hover:shadow-[0_15px_40px_rgba(0,255,209,0.45)] border border-accent/20 transition-[background-color,border-color,box-shadow] duration-300 group cursor-pointer overflow-hidden shimmer-btn-glow"
+            >
+              {/* Subtle animated premium perimeter glow */}
+              <motion.div
+                className="absolute inset-0 -z-10 bg-accent/60 blur-md pointer-events-none"
+                animate={{
+                  scale: [0.98, 1.15, 0.98],
+                  opacity: [0.5, 0.9, 0.5],
                 }}
-                initial={{ scale: 0, opacity: 0.8 }}
-                animate={{ scale: 1, opacity: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
               />
-            ))}
 
-            <span className="relative flex h-2 w-2 z-10">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0A0A0A] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0A0A0A]"></span>
-            </span>
-            <MessagesSquare className="w-3.5 h-3.5 z-10" />
-            <span className="z-10">Request Consultation</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform z-10" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+              {/* Click ripple effect cells */}
+              {ripples.map((ripple) => (
+                <motion.span
+                  key={ripple.id}
+                  className="absolute bg-white/40 rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: ripple.x,
+                    top: ripple.y,
+                    width: 240,
+                    height: 240,
+                  }}
+                  initial={{ scale: 0, opacity: 0.8 }}
+                  animate={{ scale: 1, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              ))}
+
+              <span className="relative flex h-2 w-2 z-10">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0A0A0A] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0A0A0A]"></span>
+              </span>
+              <MessagesSquare className="w-3 h-3 md:w-3.5 md:h-3.5 z-10" />
+              <span className="z-10">Request Consultation</span>
+              <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3 group-hover:translate-x-1 transition-transform z-10" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
 
     </div>
   );

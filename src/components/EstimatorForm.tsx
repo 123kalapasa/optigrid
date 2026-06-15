@@ -103,7 +103,7 @@ export default function EstimatorForm({ onSubmit, loading }: EstimatorFormProps)
           placeholder="Describe your business bottleneck, current manual tasks, or the web platform you want to build..."
           rows={4}
           required
-          className="w-full bg-[#050505] border border-white/5 rounded-none p-4 text-xs md:text-sm text-white placeholder-white/25 focus:outline-none focus:border-accent/40 focus:bg-black transition-all resize-none leading-relaxed font-mono"
+          className="w-full bg-black/80 border border-white/5 rounded-none p-4 text-xs md:text-sm text-white placeholder-white/25 focus:outline-none focus:border-accent/40 focus:shadow-[0_0_15px_rgba(0,255,209,0.05)] focus:bg-black transition-all resize-none leading-relaxed font-mono"
         />
       </div>
 
@@ -119,16 +119,16 @@ export default function EstimatorForm({ onSubmit, loading }: EstimatorFormProps)
               <div
                 key={svc.value}
                 onClick={() => handleServiceToggle(svc.value)}
-                className={`flex items-start gap-4 p-3.5 rounded-none border transition-all cursor-pointer ${
+                className={`flex items-start gap-4 p-3.5 rounded-none border transition-all duration-300 cursor-pointer ${
                   isSelected
-                    ? "bg-accent/5 border-accent/40 text-accent"
+                    ? "bg-accent/[0.04] border-accent/50 text-accent shadow-[0_0_15px_rgba(0,255,209,0.06)]"
                     : "bg-black/60 border-white/5 text-white/50 hover:border-white/10 hover:bg-black/85"
                 }`}
               >
-                <div className={`mt-0.5 w-3.5 h-3.5 border flex items-center justify-center shrink-0 ${
-                  isSelected ? "border-accent bg-accent/20" : "border-white/20"
+                <div className={`mt-0.5 w-3.5 h-3.5 border flex items-center justify-center shrink-0 transition-all duration-300 ${
+                  isSelected ? "border-accent bg-accent/25 shadow-[0_0_8px_rgba(0,255,209,0.4)]" : "border-white/20"
                 }`}>
-                  {isSelected && <span className="w-1.5 h-1.5 bg-accent" />}
+                  {isSelected && <span className="w-1.5 h-1.5 bg-accent shadow-[0_0_4px_#00FFD1]" />}
                 </div>
                 <span className="text-[11px] font-mono font-medium leading-tight">{svc.label}</span>
               </div>
@@ -149,19 +149,19 @@ export default function EstimatorForm({ onSubmit, loading }: EstimatorFormProps)
               <div
                 key={tier.value}
                 onClick={() => setBudgetRange(tier.value)}
-                className={`p-4 rounded-none border transition-all cursor-pointer flex flex-col justify-between h-36 ${
+                className={`p-4 rounded-none border transition-all duration-300 cursor-pointer flex flex-col justify-between h-36 hover:scale-[1.015] active:scale-[0.985] ${
                   isSelected
-                    ? "bg-accent/5 border-accent/40 text-white shadow-[0_4px_20px_rgba(0,255,209,0.04)]"
-                    : "bg-[#050505] border-white/5 text-white/40 hover:border-white/10"
+                    ? "bg-accent/[0.04] border-accent/50 text-white shadow-[0_0_25px_rgba(0,255,209,0.08)]"
+                    : "bg-black/60 border-white/5 text-white/40 hover:border-white/10 hover:bg-black/85"
                 }`}
               >
                 <div>
-                  <span className={`text-[8px] font-mono leading-none border px-2 py-0.5 font-bold uppercase ${
-                    isSelected ? "text-accent border-accent/30 bg-accent/15" : "text-white/30 border-white/5"
+                  <span className={`text-[8px] font-mono leading-none border px-2 py-0.5 font-bold uppercase transition-all duration-300 ${
+                    isSelected ? "text-accent border-accent/30 bg-accent/15 shadow-[0_0_8px_rgba(0,255,209,0.1)] text-glow" : "text-white/30 border-white/5"
                   }`}>
                     {tier.label}
                   </span>
-                  <span className={`font-mono font-bold text-sm block mt-2.5 ${isSelected ? "text-accent text-glow" : "text-white/80"}`}>
+                  <span className={`font-mono font-bold text-sm block mt-2.5 transition-colors duration-300 ${isSelected ? "text-accent text-glow" : "text-white/80"}`}>
                     {tier.value}
                   </span>
                 </div>
@@ -184,13 +184,13 @@ export default function EstimatorForm({ onSubmit, loading }: EstimatorFormProps)
               <div
                 key={mkt.value}
                 onClick={() => setTargetMarket(mkt.value)}
-                className={`p-4 rounded-none border transition-all cursor-pointer flex flex-col justify-between h-28 ${
+                className={`p-4 rounded-none border transition-all duration-300 cursor-pointer flex flex-col justify-between h-28 hover:scale-[1.015] active:scale-[0.985] ${
                   isSelected
-                    ? "bg-accent/5 border-accent/40 text-white shadow-[0_4px_20px_rgba(0,255,209,0.04)]"
-                    : "bg-[#050505] border-white/5 text-white/40 hover:border-white/10"
+                    ? "bg-accent/[0.04] border-accent/50 text-white shadow-[0_0_25px_rgba(0,255,209,0.08)]"
+                    : "bg-black/60 border-white/5 text-white/40 hover:border-white/10 hover:bg-black/85"
                 }`}
               >
-                <span className={`font-mono text-[10px] font-bold uppercase ${isSelected ? "text-accent" : "text-white/80"}`}>
+                <span className={`font-mono text-[10px] font-bold uppercase transition-all duration-300 ${isSelected ? "text-accent text-glow" : "text-white/80"}`}>
                   {mkt.label}
                 </span>
                 <p className="text-[10px] text-white/50 leading-relaxed font-sans mt-2">{mkt.desc}</p>

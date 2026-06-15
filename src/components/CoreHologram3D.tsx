@@ -36,7 +36,7 @@ export default function CoreHologram3D() {
   const [showScanline, setShowScanline] = useState<boolean>(true);
   
   // Real-time metrics states
-  const [metrics, setMetrics] = useState({
+  const metricsRef = useRef({
     fps: 60,
     theta: 0,
     vertices: 2420,
@@ -234,12 +234,12 @@ export default function CoreHologram3D() {
       frames++;
       frameTimer += delta;
       if (frameTimer >= 0.5) {
-        setMetrics(prev => ({
-          ...prev,
+        metricsRef.current = {
+          ...metricsRef.current,
           fps: Math.round(frames / frameTimer),
           theta: parseFloat(parentGroup.rotation.y.toFixed(2)),
           gpuTemp: Math.round(41 + Math.sin(time / 1000) * 1.5 + (settingsRef.current.speed * 1.5))
-        }));
+        };
         frames = 0;
         frameTimer = 0;
       }
@@ -330,12 +330,9 @@ export default function CoreHologram3D() {
       const vertCount = coreMesh.visible ? coreGeo.attributes.position.count : 0 + (starPoints.visible ? starsCount : 0);
       const faceCount = coreMesh.visible ? coreGeo.index ? coreGeo.index.count / 3 : 0 : 0;
       
-      if (vertCount !== metrics.vertices) {
-        setMetrics(prev => ({
-          ...prev,
-          vertices: vertCount,
-          polygons: faceCount
-        }));
+      if (vertCount !== metricsRef.current.vertices) {
+        metricsRef.current.vertices = vertCount;
+        metricsRef.current.polygons = faceCount;
       }
 
       renderer.render(scene, camera);
